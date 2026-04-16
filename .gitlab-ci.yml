@@ -14,6 +14,9 @@ variables:
   SEARCH_KEYWORD:
     description: "Введите ключевое слово для поиска"
     value: "include"
+  EXCLUDE_KEYWORD:
+    description: "Введите ключевое слово для исключения"
+    value: ""
   SEARCH_FILE_PATTERN:
     description: "Шаблон для поиска файлов (например, *.yml)"
     value: "*.yml"
@@ -29,4 +32,4 @@ search_keyword:
   when: manual
   script:
     - npm install
-    - node search.js -s "${SEARCH_KEYWORD}" -p "${SEARCH_FILE_PATTERN}" -g "${GITLAB_GROUP_ID}" --host "${GITLAB_HOST}" --token "${GITLAB_TOKEN}"
+    - node search.js -s "${SEARCH_KEYWORD}" --exclude "${EXCLUDE_KEYWORD}" -p "${SEARCH_FILE_PATTERN}" -g "${GITLAB_GROUP_ID}" --host "${GITLAB_HOST}" --token "${GITLAB_TOKEN}"

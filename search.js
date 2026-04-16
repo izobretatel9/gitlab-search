@@ -20,6 +20,7 @@ commander.program
   .option('-d, --delay <number>', 'API rate limiter in milliseconds (default=4000)')
   .option('--host <string>', 'Gitlab instance host (default=https://gitlab.com)')
   .option('--token <string>', 'Your personal Gitlab token (api_read)')
+  .option('--exclude <string>', 'Exclude matches containing this string')
   .name("node search")
   .usage("-s test -p \"*.php\"")
   .version(softVersion)
@@ -35,6 +36,7 @@ process.env.INCLUDE_SUBGROUP = options.includeSubgroup || process.env.INCLUDE_SU
 process.env.SEARCH_DELAY = options.delay || process.env.SEARCH_DELAY || 4000;
 process.env.GITLAB_HOST = options.host || process.env.GITLAB_HOST || 'https://gitlab.com';
 process.env.GITLAB_TOKEN = options.token || process.env.GITLAB_TOKEN || null;
+process.env.EXCLUDE_KEYWORD = options.exclude || process.env.EXCLUDE_KEYWORD || '';
 
 // 5. Генерация ID поиска
 const hash = crypto.createHash('sha256');
@@ -148,7 +150,20 @@ function __run() {
 
         const results = await searchInProject(project, filter.join(' '));
 
-        for (let k = 0; k < results.length; k++) {
+        let filteredResults = results;
+
+        if (process.env.EXCLUDE_KEYWORD) {
+          const exclude = process.env.EXCLUDE_KEYWORD.toLowerCase();
+
+          filteredResults = results.filter(element => {
+            const data = (element.data || '').toLowerCase();
+            const path = (element.path || '').toLowerCase();
+
+            return !data.includes(exclude) && !path.includes(exclude);
+          });
+        }
+
+        for (let k = 0; k < filteredResults.length; k++) {
           const element = results[k];
           const fileUrl = `${process.env.GITLAB_HOST}/${normalizedPath}/-/blob/${project.default_branch}/${element.path}`;
           console.log(`➕ ${fileUrl}`);
